@@ -13,3 +13,5 @@ Finally, you can setup up :
 
 I'm sorry for foreign people, that development was build for french wattmetter and i really don't know how data are represented in your country.
 Anyway, it's very easy to change the protocole in code.
+
+###### Auteur : *Sébastien DALIGAULT*. 

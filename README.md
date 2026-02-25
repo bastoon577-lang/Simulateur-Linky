@@ -1,6 +1,5 @@
 # SimuLinky
-Cette outils rudimentaire permet de simuler le compteur Linky sur le port COM et ainsi effectuer des tests rapide avec le Module TIC sur 
-sont PCB de flashage.
+Cet outils rudimentaire permet de simuler le compteur Linky sur le port COM et ainsi effectuer des tests rapide avec le [Module TIC](https://github.com/bastoon577-lang/Module-TIC-SOFTWARE) compatible avec son PCB de flashage.
 
 # Comment utiliser le script ?
 Son utilisation passe par son lancement en Python.

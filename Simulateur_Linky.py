@@ -21,10 +21,14 @@ class TeleinfoSimulator:
     def __init__(self, port, type, isousc):
         self.isousc = isousc
         self.iinst = 0
-        self.hchp = 3676
         self.ptec = "HP.."
         self.running = True
         self.type = type
+
+        # Initialisation des index réels sous forme de Float à 0.0
+        self.hchp_value = 0.0
+        self.hchc_value = 0.0
+        self.last_update_time = time.time()
 
         self.ser = serial.Serial(
             port=port,
@@ -36,8 +40,27 @@ class TeleinfoSimulator:
         )
 
     def build_frame(self):
-        papp = self.iinst * 230
-        self.hchp += 1
+        if self.type == "M":
+            papp = self.iinst * 230
+        else:
+            # En triphasé : Somme des 3 phases (IINST1 + IINST2 + IINST3) * 230V
+            papp = (self.iinst + (self.iinst + 2) + (self.iinst + 3)) * 230
+        
+        # --- Calcul de l'énergie consommée ---
+        now = time.time()
+        elapsed_seconds = now - self.last_update_time
+        self.last_update_time = now
+        
+        delta_wh = (papp * elapsed_seconds) / 3600.0
+        
+        if self.ptec == "HP..":
+            self.hchp_value += delta_wh
+        elif self.ptec == "HC..":
+            self.hchc_value += delta_wh
+            
+        # Formatage sur 9 chiffres exigé par le Linky
+        str_hchp = f"{int(self.hchp_value):09d}"
+        str_hchc = f"{int(self.hchc_value):09d}"
         
         frame = [
                 "IMAX 090",
@@ -45,10 +68,10 @@ class TeleinfoSimulator:
                 "HHPHC A",
                 "BASE 002844816",
                 "ADCO 022064215196",
-                "HCHC 034366502",
+                f"HCHC {str_hchc}",
                 f"ISOUSC {self.isousc}",
                 f"PTEC {self.ptec}",
-                f"HCHP {self.hchp}",
+                f"HCHP {str_hchp}",
                 "MOTDETAT 000000"
             ]
 
@@ -56,8 +79,8 @@ class TeleinfoSimulator:
             frame.append(f"IINST {self.iinst}")
         else:
             frame.append(f"IINST1 {self.iinst}")
-            frame.append(f"IINST2 {self.iinst}")
-            frame.append(f"IINST3 {self.iinst}")
+            frame.append(f"IINST2 {self.iinst+2}")
+            frame.append(f"IINST3 {self.iinst+3}")
             
         frame.append(f"PAPP {papp}")
 
@@ -65,6 +88,7 @@ class TeleinfoSimulator:
 
     def send_loop(self):
         print("Envoi de la trame toutes les secondes…")
+        self.last_update_time = time.time()
         while self.running:
             for line in self.build_frame():
                 self.ser.write(build_line(line).encode("ascii"))
@@ -75,12 +99,13 @@ class TeleinfoSimulator:
         print("Valeur IINST :")
         while self.running:
             try:
-                val = input("> IINST = XX or PTEC = HP.. / HC.. ")
+                val = input("> IINST = XX or PTEC = HP.. / HC.. ").strip()
                 self.iinst = int(val)
                 print(f"IINST mis à jour à {self.iinst} A")
             except ValueError:
-                self.ptec = val
-                print(f"PTEC mis à jour à {self.ptec}")
+                if val in ["HP..", "HC.."]:
+                    self.ptec = val
+                    print(f"PTEC mis à jour à {self.ptec}")
 
     def stop(self):
         self.running = False

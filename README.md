@@ -24,15 +24,19 @@ Run the script in Python command :
 ```
 python Simulateur_Linky.py
 ```
-Inform COM Port :
+Inform COM Port and `Enter` :
 ```
 Port COM (ex: COM3 ou /dev/ttyUSB0) : COM9
 ```
-Inform Type Linky (Single Phase or Three phases) :
+Inform Type Linky (Single Phase or Three phases) and `Enter` :
 ```
 Type Linky (ex: M (Monophasé) ou T (Triphasé)) : M
 ```
-Finally, you can setup up Linky data with :
+Inform ISOUSC value and `Enter` :
+```
+Valeur ISOUSC : 30
+```
+Finally, you can setup up Linky data by writing value and `Enter` :
 ```
 > IINST = XX or PTEC = HP.. / HC..
 1. Current by infomring value,
